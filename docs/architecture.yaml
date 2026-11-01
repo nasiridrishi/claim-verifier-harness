@@ -7,13 +7,13 @@ groups:
   - {id: api,   label: Claude API,                kind: generic, children: [judge]}
 
 nodes:
-  - {id: drafter,  icon: "generic:user",     label: Drafter}
-  - {id: draft,    icon: "generic:service",  label: draft.md with claims manifest}
-  - {id: corpus,   icon: "generic:database", label: knowledge/ dated corpus}
-  - {id: precheck, icon: "generic:service",  label: precheck.py (no model)}
-  - {id: verify,   icon: "generic:service",  label: verify.sh}
-  - {id: judge,    icon: "generic:external", label: Claude judge (no tools)}
-  - {id: verdicts, icon: "generic:database", label: verdicts/ one per claim}
+  - {id: drafter,  icon: "flat:businessman", label: Drafter}
+  - {id: draft,    icon: "devicon:markdown", label: draft.md with claims manifest}
+  - {id: corpus,   icon: "flat:folder",      label: knowledge/ dated corpus}
+  - {id: precheck, icon: "devicon:python",   label: precheck.py (no model)}
+  - {id: verify,   icon: "devicon:bash",     label: verify.sh}
+  - {id: judge,    icon: "logos:claude-icon", label: Claude judge (no tools)}
+  - {id: verdicts, icon: "flat:approval",    label: verdicts/ one per claim}
 
 edges:
   - {from: drafter,  to: draft,    label: body + claims, step: 1}
