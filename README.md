@@ -15,25 +15,24 @@ source proves internal consistency, not currency. The gate is built to catch exa
 
 ## Shape
 
-```
-draft.md  (body + a ## Claims manifest the drafter writes)
-   |
-   v
-precheck.py          deterministic, no model
-   - checks each manifest claim is in the body, its evidence exists, its quote is really there
-   - staleness query: any corpus file on the same topics dated AFTER the evidence
-   - extracts every number, date, domain, identifier and name in the body and greps the corpus
-   - auto-settles a claim whose quote sits in a dated direct observation with nothing newer
-   - writes prechecks/<slug>.json: claims, excerpts, values, uncovered lines, problems
-   |
-   v
-claim-judge.md       a model with Read and Write only, no search
-   - reads the JSON, judges excerpt vs claim, applies the existence and transcript rules
-   - writes verdicts/<slug>.json, one verdict per claim
-   |
-   v
-verify.sh            runs both, refuses to leave a verdict on disk for a body that changed
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/architecture-dark.svg">
+  <img src="docs/architecture.svg" alt="Drafter writes draft.md with a claims manifest; precheck.py checks it against the dated knowledge corpus with no model and writes a precheck JSON; verify.sh sends that JSON and the body as data to a Claude judge with no tools, validates the verdict it returns and writes one verdict per claim.">
+</picture>
+
+1. The drafter writes the body and a `## Claims` manifest: each claim with its evidence file,
+   a verbatim quote, topics and type.
+2. `emails/precheck.py`, deterministic and with no model, checks each claim is in the body, its
+   evidence exists and its quote is really there. It runs a staleness query (any corpus file on
+   the same topics dated after the evidence), extracts every number, date, domain, identifier and
+   name in the body and greps the corpus for each, and auto-settles a claim whose quote sits in a
+   dated direct observation with nothing newer.
+3. It writes `emails/prechecks/<slug>.json`: claims, excerpts, values, uncovered lines, problems.
+4. `emails/verify.sh` sends that JSON and the body to the judge (`emails/claim-judge.md`), a model
+   with no tools, which applies the existence and transcript rules and returns one verdict per
+   claim as JSON.
+5. `verify.sh` validates the verdict, writes `emails/verdicts/<slug>.json`, and discards it if the
+   body changed while the judge ran. The diagram source is `docs/architecture.yaml`.
 
 Verdicts: `SUPPORTED`, `CONTRADICTED`, `STALE`, `UNVERIFIABLE`, `INCOHERENT`, `NOT_A_CLAIM`,
 `PLATFORM_RULE`. Anything other than `SUPPORTED`, `NOT_A_CLAIM` or `PLATFORM_RULE` blocks.
@@ -50,9 +49,11 @@ Verdicts: `SUPPORTED`, `CONTRADICTED`, `STALE`, `UNVERIFIABLE`, `INCOHERENT`, `N
 ## Anti-anchoring by construction
 
 The drafter's reasoning lives in the notes half of the draft, which the judge never sees. The
-precheck lifts out only claim text, evidence pointer, quote and dates. The judge cannot open a
-third file; the toolset is enforced by `claude -p --allowedTools "Read,Write"`, not by
-instruction, because a search-capable agent given a fast path still searched.
+precheck lifts out only claim text, evidence pointer, quote and dates. The judge has no tools at
+all: `claude -p --tools ""` with the precheck JSON and body in the prompt, enforced rather than
+instructed, because a search-capable agent given a fast path still searched. It returns the
+verdict as JSON and `verify.sh` validates it and writes the file. The body is untrusted text, so
+a judge that could write files would let a crafted draft write wherever the session could.
 
 ## Numbers
 
@@ -80,7 +81,7 @@ python3 emails/precheck.py emails/wave-two-update.md    # deterministic, no mode
 
 The precheck flags the licence claim as `CHECK` with a newer file on the same topics. The judge
 then returns one `STALE` and two `SUPPORTED`, so the draft is blocked. On 1 November 2026 that run
-took 20 seconds and $0.013 with a Haiku judge.
+took 18 seconds and $0.007 with a Haiku judge.
 
 `emails/emails.py` and `knowledge/build_index.py` are minimal stand-ins for the workspace modules
 the gate was extracted from (body extraction and digest; corpus frontmatter). `MON-N` evidence

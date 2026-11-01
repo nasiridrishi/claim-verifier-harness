@@ -1,0 +1,24 @@
+title: Claim verifier harness
+subtitle: Every claim in a draft is checked against the newest dated evidence before it can be sent
+direction: LR
+
+groups:
+  - {id: local, label: Workspace (local scripts), kind: generic, children: [draft, corpus, precheck, verify, verdicts]}
+  - {id: api,   label: Claude API,                kind: generic, children: [judge]}
+
+nodes:
+  - {id: drafter,  icon: "generic:user",     label: Drafter}
+  - {id: draft,    icon: "generic:service",  label: draft.md with claims manifest}
+  - {id: corpus,   icon: "generic:database", label: knowledge/ dated corpus}
+  - {id: precheck, icon: "generic:service",  label: precheck.py (no model)}
+  - {id: verify,   icon: "generic:service",  label: verify.sh}
+  - {id: judge,    icon: "generic:external", label: Claude judge (no tools)}
+  - {id: verdicts, icon: "generic:database", label: verdicts/ one per claim}
+
+edges:
+  - {from: drafter,  to: draft,    label: body + claims, step: 1}
+  - {from: draft,    to: precheck, label: claims and quotes, step: 2}
+  - {from: corpus,   to: precheck, label: "quotes, dates, newer files"}
+  - {from: precheck, to: verify,   label: precheck JSON, step: 3}
+  - {from: verify,   to: judge,    label: JSON + body as data, step: 4}
+  - {from: verify,   to: verdicts, label: validated verdict, step: 5}
