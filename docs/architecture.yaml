@@ -1,6 +1,7 @@
 title: Claim verifier harness
 subtitle: Every claim in a draft is checked against the newest dated evidence before it can be sent
 direction: LR
+title_position: bottom
 
 groups:
   - {id: local, label: Workspace (local scripts), kind: generic, children: [draft, corpus, precheck, verify, verdicts]}
